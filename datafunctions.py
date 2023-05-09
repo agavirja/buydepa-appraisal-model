@@ -302,7 +302,7 @@ def ANNpricingforecast(inputvar):
     pais         = inputvar['pais']
     tiponegocio  = inputvar['tiponegocio']
     tipoinmueble = inputvar['tipoinmueble']
-    with open(rf'D:\Dropbox\Empresa\Buydepa\PROYECTOS\APPRAISAL\model result\ANN_{pais.lower()}_{tiponegocio.lower()}_{tipoinmueble.lower()}.pkl', "rb") as f:
+    with open(f"data/ANN_{pais.lower()}_{tiponegocio.lower()}_{tipoinmueble.lower()}.pkl", "rb") as f:
         salida = pickle.load(f)
     
     delta         = 0
