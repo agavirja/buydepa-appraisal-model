@@ -98,12 +98,22 @@ with st.sidebar:
     elif pais.lower()=='colombia':
         garajes = st.selectbox(diccionario[paislower]['garajes'], options=[0,1,2,3,4],index=0)
         
-    antiguedad = st.number_input('Antiguedad',min_value=0,max_value=100,value=8)
-    estrato    = None
-    
+    antiguedad  = st.number_input('Antiguedad',min_value=0,max_value=100,value=8)
+    estrato     = None
+    areaterraza = 0
     if pais.lower()=='colombia':
         estrato = st.selectbox('Estrato', options=[2,3,4,5,6],index=2)    
+
+    if pais.lower()=='chile':
+        col1, col2 = st.columns(2)
+        with col1:
+            terrachacheck = st.checkbox('Terraza')
+        with col2: 
+            bodega = st.checkbox('Bodega')
         
+        if terrachacheck: 
+            areaterraza = st.number_input('Área terraza',min_value=0,max_value=100,value=5)
+     
     if st.button(f'Valorar este {diccionario[paislower]["inmueble"].lower()}'):
         with st.spinner():
             if pais.lower()=='chile':
