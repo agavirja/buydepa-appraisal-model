@@ -56,8 +56,8 @@ def analysis_by_business(inputvar,tiponegocio,tipoinmueble,pais,datacomparables,
         for i, inmueble in datacomparables.iterrows():
             if isinstance(inmueble['img1'], str) and len(inmueble['img1'])>20: imagen_principal =  inmueble['img1']
             else: imagen_principal = "https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/sin_imagen.png"
-            #url_export   = f"http://localhost:8501/Ficha?code={inmueble['id']}&pais={pais.lower()}&tiponegocio={tiponegocio.lower()}&tipoinmueble={tipoinmueble.lower()}" 
-            url_export = ""
+            url_export   = f"https://agavirja-buydepa-appraisal-ficha-ficha-1m2ib5.streamlit.app?code={inmueble['id']}&pais={pais.lower()}&tiponegocio={tiponegocio.lower()}&tipoinmueble={tipoinmueble.lower()}" 
+            #url_export = ""
             try:    garajes_inmueble = int(inmueble['garajes'])
             except: garajes_inmueble = ""
             
@@ -184,8 +184,8 @@ def analysis_by_business(inputvar,tiponegocio,tipoinmueble,pais,datacomparables,
         except: garajes_inmueble = ""
             
         propertyinfo = f'<strong>{inmueble["areaconstruida"]}</strong> mt<sup>2</sup> | <strong>{int(inmueble["habitaciones"])}</strong> hab | <strong>{int(inmueble["banos"])}</strong> baños {garajes_inmueble}'
-        #url_export   = f"http://localhost:8501/Ficha?code={inmueble['id']}&pais={pais.lower()}&tiponegocio={tiponegocio.lower()}&tipoinmueble={tipoinmueble.lower()}" 
-        url_export = ""
+        url_export   = f"https://agavirja-buydepa-appraisal-ficha-ficha-1m2ib5.streamlit.app?code={inmueble['id']}&pais={pais.lower()}&tiponegocio={tiponegocio.lower()}&tipoinmueble={tipoinmueble.lower()}" 
+        #url_export = ""
         if isinstance(inmueble['direccion'], str): direccion = inmueble['direccion'][0:35]
         else: direccion = '&nbsp'
         imagenes += f'''    
