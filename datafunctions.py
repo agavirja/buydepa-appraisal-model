@@ -256,7 +256,7 @@ def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecas
             {f"ABS(garajes - {garajes}) +" if garajes is not None else ""}
             ABS(valorventa - {forecast_venta if forecast_venta is not None else 0}) / {forecast_venta if forecast_venta is not None else 1} as similitud
         FROM appraisal.{tablaventa}
-        WHERE AND habitaciones = {habitaciones} 
+        WHERE habitaciones = {habitaciones} 
             AND banos = {banos}
             AND (areaconstruida BETWEEN 0.8 * {areaconstruida} AND 1.2 * {areaconstruida})
             {zona_filter}
@@ -277,7 +277,7 @@ def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecas
                 {f"ABS(garajes - {garajes}) +" if garajes is not None else ""}
                 ABS(valorarriendo - {forecast_arriendo if forecast_arriendo is not None else 0}) / {forecast_arriendo if forecast_arriendo is not None else 1} as similitud
             FROM appraisal.{tablaarriendo}
-            WHERE AND habitaciones = {habitaciones} 
+            WHERE habitaciones = {habitaciones} 
                 AND banos = {banos}
                 AND (areaconstruida BETWEEN 0.8 * {areaconstruida} AND 1.2 * {areaconstruida})
                 {zona_filter}
