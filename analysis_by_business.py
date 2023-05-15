@@ -2,9 +2,10 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from bs4 import BeautifulSoup
-from shapely.geometry import mapping
+from shapely.geometry import Polygon,mapping
 
 from datafunctions import getpolygon
 from html_scripts import boxkpisecond
@@ -12,6 +13,16 @@ from html_scripts import boxkpisecond
 @st.experimental_memo
 def convert_df(df):
    return df.to_csv(index=False).encode('utf-8')
+
+@st.experimental_memo
+def circle_polygon(metros,lat,lng):
+    grados   = np.arange(-180, 190, 10)
+    Clat     = ((metros/1000.0)/6371.0)*180/np.pi
+    Clng     = Clat/np.cos(lat*np.pi/180.0)
+    theta    = np.pi*grados/180.0
+    longitud = lng + Clng*np.cos(theta)
+    latitud  = lat + Clat*np.sin(theta)
+    return Polygon([[x, y] for x,y in zip(longitud,latitud)])
 
 def style_function(feature):
     return {
@@ -21,7 +32,7 @@ def style_function(feature):
         #'dashArray': '5, 5'
     }    
 
-def analysis_by_business(inputvar,tiponegocio,tipoinmueble,pais,datacomparables,diccionario):
+def analysis_by_business(inputvar,tiponegocio,tipoinmueble,pais,datacomparables,diccionario,metros):
     
     paislower = pais.lower()
     if tiponegocio.lower()=='venta':
@@ -35,8 +46,9 @@ def analysis_by_business(inputvar,tiponegocio,tipoinmueble,pais,datacomparables,
     st.markdown(f'<div style="background-color: #f2f2f2; border: 1px solid #fff; padding: 0px; margin-bottom: 20px;"><h1 style="margin: 0; font-size: 18px; text-align: center; color: #3A5AFF;">Comparación con inmuebles en <b>{tiponegocio.upper()}</b> en el mismo sector</h1></div>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([2,1,1])
-    with col1:     
-        geojson_data = mapping(getpolygon(inputvar["latitud"], inputvar["longitud"]))
+    with col1:
+        #geojson_data = mapping(getpolygon(inputvar["latitud"], inputvar["longitud"]))
+        geojson_data = circle_polygon(metros,inputvar["latitud"], inputvar["longitud"])
         m            = folium.Map(location=[inputvar["latitud"], inputvar["longitud"]], zoom_start=15,tiles="cartodbpositron")
         folium.GeoJson(geojson_data, style_function=style_function).add_to(m)
 

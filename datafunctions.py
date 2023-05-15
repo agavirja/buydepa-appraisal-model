@@ -235,53 +235,72 @@ def getcaracterizacion(pais,tipoinmueble,codigo):
     return resultado
 
 @st.experimental_memo
-def getcomparables(pais,tipoinmueble,codigo,areaconstruida,forecast_venta=None,forecast_arriendo=None,habitaciones=None,banos=None,garajes=None):
-    tablaventa = f'{pais.lower()}_venta_{tipoinmueble.lower()}_market'
-    tablaarriendo = f'{pais.lower()}_arriendo_{tipoinmueble.lower()}_market'
+def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecast_venta=None,forecast_arriendo=None,habitaciones=None,banos=None,garajes=None):
+    tablaventa      = f'{pais.lower()}_venta_{tipoinmueble.lower()}_market'
+    tablaarriendo   = f'{pais.lower()}_arriendo_{tipoinmueble.lower()}_market'
+    metros_venta    = 150
+    metros_arriendo = 150
     
-    query_venta = f"""
+    zona_filter = ''
+    if 'colombia' in pais.lower():
+        zona_filter = f"AND codigo = '{codigo}'"
+    elif 'chile' in pais.lower():
+        zona_filter = f"AND LOWER(zona3) = LOWER('{zona3}')"
+        
+    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    for search_radius in  [150, 250, 500]:
+        query_venta = f"""
         SELECT *, 
             ABS(habitaciones - {habitaciones}) +
             ABS(banos - {banos}) +
             {f"ABS(garajes - {garajes}) +" if garajes is not None else ""}
             ABS(valorventa - {forecast_venta if forecast_venta is not None else 0}) / {forecast_venta if forecast_venta is not None else 1} as similitud
         FROM appraisal.{tablaventa}
-        WHERE codigo = '{codigo}' AND habitaciones = {habitaciones} AND banos = {banos}
+        WHERE AND habitaciones = {habitaciones} 
+            AND banos = {banos}
             AND (areaconstruida BETWEEN 0.8 * {areaconstruida} AND 1.2 * {areaconstruida})
-            AND ({forecast_venta is None} OR (valorventa BETWEEN 0.75 * {forecast_venta} AND 1.25 * {forecast_venta}))
+            {zona_filter}
+            AND ST_Distance_Sphere(geometry, POINT({lng},{lat}))<={search_radius}
         ORDER BY similitud
         LIMIT 200
-    """
-    
-    query_arriendo = f"""
-        SELECT *,
-            ABS(habitaciones - {habitaciones}) +
-            ABS(banos - {banos}) +
-            {f"ABS(garajes - {garajes}) +" if garajes is not None else ""}
-            ABS(valorarriendo - {forecast_arriendo if forecast_arriendo is not None else 0}) / {forecast_arriendo if forecast_arriendo is not None else 1} as similitud
-        FROM appraisal.{tablaarriendo}
-        WHERE codigo = '{codigo}' AND habitaciones = {habitaciones} AND banos = {banos}
-            AND (areaconstruida BETWEEN 0.8 * {areaconstruida} AND 1.2 * {areaconstruida})
-            AND ({forecast_arriendo is None} OR (valorarriendo BETWEEN 0.75 * {forecast_arriendo} AND 1.25 * {forecast_arriendo}))
-        ORDER BY similitud
-        LIMIT 200
-    """
-    
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    dataventa     = pd.read_sql(query_venta, con=db_connection)
-    dataarriendo  = pd.read_sql(query_arriendo, con=db_connection)
+        """
+        dataventa = pd.read_sql(query_venta, con=db_connection)
+        if len(dataventa)>20:
+            metros_venta = search_radius
+            break
+        
+    for search_radius in  [150, 250, 500]:
+        query_arriendo = f"""
+            SELECT *,
+                ABS(habitaciones - {habitaciones}) +
+                ABS(banos - {banos}) +
+                {f"ABS(garajes - {garajes}) +" if garajes is not None else ""}
+                ABS(valorarriendo - {forecast_arriendo if forecast_arriendo is not None else 0}) / {forecast_arriendo if forecast_arriendo is not None else 1} as similitud
+            FROM appraisal.{tablaarriendo}
+            WHERE AND habitaciones = {habitaciones} 
+                AND banos = {banos}
+                AND (areaconstruida BETWEEN 0.8 * {areaconstruida} AND 1.2 * {areaconstruida})
+                {zona_filter}
+                AND ST_Distance_Sphere(geometry, POINT({lng},{lat}))<={search_radius}
+            ORDER BY similitud
+            LIMIT 200
+        """
+        dataarriendo  = pd.read_sql(query_arriendo, con=db_connection)
+        if len(dataarriendo)>20:
+            metros_arriendo = search_radius
+            break
     db_connection.close()
     
-    if forecast_venta is not None:
+    if forecast_venta is not None and dataventa.empty is False:
         dataventa['diff_precio_venta'] = abs(dataventa['valorventa'] - forecast_venta)
         dataventa = dataventa.sort_values(by='diff_precio_venta')
     
     # Ordenar los registros seleccionados por la diferencia de precio en la tabla de arriendo
-    if forecast_arriendo is not None:
+    if forecast_arriendo is not None and dataarriendo.empty is False:
         dataarriendo['diff_precio_arriendo'] = abs(dataarriendo['valorarriendo'] - forecast_arriendo)
         dataarriendo = dataarriendo.sort_values(by='diff_precio_arriendo')   
         
-    return dataventa,dataarriendo
+    return dataventa,metros_venta,dataarriendo,metros_arriendo
 
 def similitud(row, inmueble_tipo,vardep):
     score = 0

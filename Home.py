@@ -54,7 +54,9 @@ diccionario = {'chile':{'garajes': 'Estacionamientos', 'comuna': 'Comuna', 'habi
 formato = {'inputvar':{},
            'show_results':False, 
            'dataventacomp':pd.DataFrame(),
-           'datarriendocomp':pd.DataFrame()
+           'datarriendocomp':pd.DataFrame(),
+           'metros_venta':150,
+           'metros_arriendo':150
           }
 
 for key,value in formato.items():
@@ -139,18 +141,21 @@ with st.sidebar:
             pais           = st.session_state.inputvar['pais']
             tipoinmueble   = st.session_state.inputvar['tipoinmueble']
             codigo         = st.session_state.inputvar['codigo']
+            zona3          = st.session_state.inputvar['zona3']
             areaconstruida = st.session_state.inputvar['areaconstruida']
             habitaciones   = st.session_state.inputvar['habitaciones']
             banos          = st.session_state.inputvar['banos']
             garajes        = st.session_state.inputvar['garajes']
-            st.session_state.inputvar['barrio']       = getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones,banos,garajes)
-            st.session_state.inputvar['valorizacion'] = getvalorizacion(pais,tipoinmueble,codigo,habitaciones,banos,garajes)
+            lat            = st.session_state.inputvar['latitud']
+            lng            = st.session_state.inputvar['longitud']
+            st.session_state.inputvar['barrio']          = getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones,banos,garajes)
+            st.session_state.inputvar['valorizacion']    = getvalorizacion(pais,tipoinmueble,codigo,habitaciones,banos,garajes)
             st.session_state.inputvar['caracterizacion'] = getcaracterizacion(pais,tipoinmueble,codigo)
             
             forecast_venta    = st.session_state.inputvar['forecast_venta']
             forecast_arriendo = st.session_state.inputvar['forecast_arriendo']
-            st.session_state.dataventacomp, st.session_state.datarriendocomp = getcomparables(pais,tipoinmueble,codigo,areaconstruida,forecast_venta,forecast_arriendo,habitaciones,banos,garajes)
-        
+            st.session_state.dataventacomp,st.session_state.metros_venta, st.session_state.datarriendocomp,st.session_state.metros_arriendo = getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecast_venta,forecast_arriendo,habitaciones,banos,garajes)      
+    
             st.session_state.show_results = True
         
         
@@ -262,8 +267,8 @@ if st.session_state.show_results:
         
     #-------------------------------------------------------------------------#
     # Analisis de inmuebles en venta
-    analysis_by_business(st.session_state.inputvar,'Venta',tipoinmueble,pais,st.session_state.dataventacomp,diccionario)
+    analysis_by_business(st.session_state.inputvar,'Venta',tipoinmueble,pais,st.session_state.dataventacomp,diccionario,st.session_state.metros_venta)
 
     #-------------------------------------------------------------------------#
     # Analisis de inmuebles en arriendo
-    analysis_by_business(st.session_state.inputvar,'Arriendo',tipoinmueble,pais,st.session_state.datarriendocomp,diccionario)
+    analysis_by_business(st.session_state.inputvar,'Arriendo',tipoinmueble,pais,st.session_state.datarriendocomp,diccionario,st.session_state.metros_arriendo)
