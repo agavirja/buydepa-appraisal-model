@@ -2,27 +2,29 @@ import streamlit as st
 import re
 import pandas as pd
 import numpy as np
-import mysql.connector as sql
+#import mysql.connector as sql
 import pickle
 import requests
 import unicodedata
 import math as mt
 from urllib.parse import quote_plus
 from shapely import wkt
-
+from sqlalchemy import create_engine 
 
 user     = st.secrets["user"]
 password = st.secrets["password"]
 host     = st.secrets["host"]
 schema   = st.secrets["schema"]
 api_key  = st.secrets["apikey"]
+engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{schema}')
 
 @st.experimental_memo
 def getcodigo(lat,lng):
     result        = {'scacodigo':None,'codigo':None,'zona1':None,'zona2':None,'zona3':None,'zona4':None}
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    data          = pd.read_sql(f"""SELECT scacodigo,codigo,zona1,zona2,zona3,zona4 FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))""" , con=db_connection)
-    db_connection.close()
+    data          = pd.read_sql_query(f"""SELECT scacodigo,codigo,zona1,zona2,zona3,zona4 FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))""" , engine)
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #data          = pd.read_sql(f"""SELECT scacodigo,codigo,zona1,zona2,zona3,zona4 FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))""" , con=db_connection)
+    #db_connection.close()
     if data.empty is False:
         result = data.iloc[0].to_dict()
     return result
@@ -30,9 +32,11 @@ def getcodigo(lat,lng):
 @st.experimental_memo
 def getpolygon(lat,lng):
     result        = None
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    data          = pd.read_sql(f"""SELECT ST_AsText(geometry) as wkt FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))""" , con=db_connection)
-    db_connection.close()
+    data          = pd.read_sql_query(f"""SELECT ST_AsText(geometry) as wkt FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))"""  , engine)
+
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #data          = pd.read_sql(f"""SELECT ST_AsText(geometry) as wkt FROM appraisal.barrios WHERE st_contains(geometry,point({lng},{lat}))""" , con=db_connection)
+    #db_connection.close()
     if data.empty is False:
         result = wkt.loads(data["wkt"].iloc[0])
     return result
@@ -133,10 +137,14 @@ def forecast(inputvar):
 def getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones=None,banos=None,garajes=None):
     tablaventa    = f'{pais.lower()}_venta_{tipoinmueble.lower()}_barrio'
     tablaarriendo = f'{pais.lower()}_arriendo_{tipoinmueble.lower()}_barrio'
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    dataventa     = pd.read_sql(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
-    dataarriendo  = pd.read_sql(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
-    db_connection.close()
+    
+    dataventa      = pd.read_sql_query(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'"""  , engine)
+    dataarriendo   = pd.read_sql_query(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , engine)
+
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #dataventa     = pd.read_sql(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
+    #dataarriendo  = pd.read_sql(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
+    #db_connection.close()
     
     resultado = pd.DataFrame()
     if dataventa.empty is False:
@@ -175,10 +183,14 @@ def getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones=None,bano
 def getvalorizacion(pais,tipoinmueble,codigo,habitaciones=None,banos=None,garajes=None):
     tablaventa    = f'{pais.lower()}_venta_{tipoinmueble.lower()}_valorizacion'
     tablaarriendo = f'{pais.lower()}_arriendo_{tipoinmueble.lower()}_valorizacion'
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    dataventa     = pd.read_sql(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
-    dataarriendo  = pd.read_sql(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
-    db_connection.close()
+    
+    dataventa      = pd.read_sql_query(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'"""  , engine)
+    dataarriendo   = pd.read_sql_query(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , engine)
+
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #dataventa     = pd.read_sql(f"""SELECT * FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
+    #dataarriendo  = pd.read_sql(f"""SELECT * FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
+    #db_connection.close()
     
     resultado = pd.DataFrame()
     if dataventa.empty is False:
@@ -215,10 +227,14 @@ def getvalorizacion(pais,tipoinmueble,codigo,habitaciones=None,banos=None,garaje
 def getcaracterizacion(pais,tipoinmueble,codigo):
     tablaventa    = f'{pais.lower()}_venta_{tipoinmueble.lower()}_caracterizacion'
     tablaarriendo = f'{pais.lower()}_arriendo_{tipoinmueble.lower()}_caracterizacion'
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
-    dataventa     = pd.read_sql(f"""SELECT variable,valor,tipo FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
-    dataarriendo  = pd.read_sql(f"""SELECT variable,valor,tipo FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
-    db_connection.close()
+    
+    dataventa      = pd.read_sql_query(f"""SELECT variable,valor,tipo FROM appraisal.{tablaventa} WHERE codigo='{codigo}'"""  , engine)
+    dataarriendo   = pd.read_sql_query(f"""SELECT variable,valor,tipo FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , engine)
+
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #dataventa     = pd.read_sql(f"""SELECT variable,valor,tipo FROM appraisal.{tablaventa} WHERE codigo='{codigo}'""" , con=db_connection)
+    #dataarriendo  = pd.read_sql(f"""SELECT variable,valor,tipo FROM appraisal.{tablaarriendo} WHERE codigo='{codigo}'""" , con=db_connection)
+    #db_connection.close()
     
     resultado = pd.DataFrame()
     if dataventa.empty is False:
@@ -247,7 +263,7 @@ def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecas
     elif 'chile' in pais.lower():
         zona_filter = f"AND LOWER(zona3) = LOWER('{zona3}')"
         
-    db_connection = sql.connect(user=user, password=password, host=host, database=schema)
+    #db_connection = sql.connect(user=user, password=password, host=host, database=schema)
     for search_radius in  [150, 250, 500]:
         query_venta = f"""
         SELECT *, 
@@ -264,7 +280,8 @@ def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecas
         ORDER BY similitud
         LIMIT 200
         """
-        dataventa = pd.read_sql(query_venta, con=db_connection)
+        dataventa = pd.read_sql_query(query_venta , engine)
+        #dataventa = pd.read_sql(query_venta, con=db_connection)
         if len(dataventa)>20:
             metros_venta = search_radius
             break
@@ -285,11 +302,12 @@ def getcomparables(pais,tipoinmueble,codigo,zona3,areaconstruida,lat,lng,forecas
             ORDER BY similitud
             LIMIT 200
         """
-        dataarriendo  = pd.read_sql(query_arriendo, con=db_connection)
+        dataarriendo = pd.read_sql_query(query_arriendo , engine)
+        #dataarriendo  = pd.read_sql(query_arriendo, con=db_connection)
         if len(dataarriendo)>20:
             metros_arriendo = search_radius
             break
-    db_connection.close()
+    #db_connection.close()
     
     if forecast_venta is not None and dataventa.empty is False:
         dataventa['diff_precio_venta'] = abs(dataventa['valorventa'] - forecast_venta)
