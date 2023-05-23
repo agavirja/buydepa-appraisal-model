@@ -161,7 +161,12 @@ def getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones=None,bano
             st.write('data paso')
             st.write(datapaso)
             
-            dataventaresult = dataventaresult.append(datapaso)
+            #dataventaresult = dataventaresult.append(datapaso)
+            dataventaresult = pd.concat([dataventaresult,datapaso])
+
+            st.write('data venta result')
+            st.write(dataventaresult)
+            
         if habitaciones is not None and banos is not None and garajes is not None:
             datapaso        = dataventa[(dataventa['tipo']=='complemento_garaje') & (dataventa['habitaciones']==habitaciones) & (dataventa['banos']==banos)  & (dataventa['garajes']==garajes)]
             dataventaresult = dataventaresult.append(datapaso)
