@@ -148,41 +148,26 @@ def getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones=None,bano
     
     resultado = pd.DataFrame()
     if dataventa.empty is False:
-        st.write('data venta')
-        st.write(dataventa)
-        
         dataventaresult = dataventa[dataventa['tipo']=='barrio']
-        
-        st.write('data venta result')
-        st.write(dataventaresult)
         if habitaciones is not None and banos is not None:
             datapaso        = dataventa[(dataventa['tipo']=='complemento') & (dataventa['habitaciones']==habitaciones) & (dataventa['banos']==banos)]
-            
-            st.write('data paso')
-            st.write(datapaso)
-            
-            #dataventaresult = dataventaresult.append(datapaso)
             dataventaresult = pd.concat([dataventaresult,datapaso])
-
-            st.write('data venta result')
-            st.write(dataventaresult)
-            
         if habitaciones is not None and banos is not None and garajes is not None:
             datapaso        = dataventa[(dataventa['tipo']=='complemento_garaje') & (dataventa['habitaciones']==habitaciones) & (dataventa['banos']==banos)  & (dataventa['garajes']==garajes)]
-            dataventaresult = dataventaresult.append(datapaso)
+            dataventaresult = pd.concat([dataventaresult,datapaso])
         dataventaresult['tiponegocio'] = 'venta'
-        resultado = resultado.append(dataventaresult)
-
+        resultado = pd.concat([resultado,dataventaresult])
+        
     if dataarriendo.empty is False:
         dataarriendoresult = dataarriendo[dataarriendo['tipo']=='barrio']
         if habitaciones is not None and banos is not None:
             datapaso           = dataarriendo[(dataarriendo['tipo']=='complemento') & (dataarriendo['habitaciones']==habitaciones) & (dataarriendo['banos']==banos)]
-            dataarriendoresult = dataarriendoresult.append(datapaso)
+            dataarriendoresult = pd.concat([dataarriendoresult,datapaso])
         if habitaciones is not None and banos is not None and garajes is not None:
             datapaso           = dataarriendo[(dataarriendo['tipo']=='complemento_garaje') & (dataarriendo['habitaciones']==habitaciones) & (dataarriendo['banos']==banos)  & (dataarriendo['garajes']==garajes)]
-            dataarriendoresult = dataarriendoresult.append(datapaso)
+            dataarriendoresult = pd.concat([dataarriendoresult,datapaso])
         dataarriendoresult['tiponegocio'] = 'arriendo'
-        resultado = resultado.append(dataarriendoresult)
+        resultado = pd.concat([resultado,dataarriendoresult])
     
     if resultado.empty is False:
         if 'valormt2' in resultado:
@@ -212,24 +197,24 @@ def getvalorizacion(pais,tipoinmueble,codigo,habitaciones=None,banos=None,garaje
         dataventaresult = dataventa[dataventa['tipo']=='barrio']
         if habitaciones is not None and banos is not None:
             datapaso        = dataventa[(dataventa['tipo']=='complemento') & (dataventa['habitaciones']==habitaciones) & (dataventa['banos']==banos)]
-            dataventaresult = dataventaresult.append(datapaso)
+            dataventaresult = pd.concat([dataventaresult,datapaso])
         if habitaciones is not None and banos is not None and garajes is not None:
             datapaso        = dataventa[(dataventa['tipo']=='complemento_garaje') & (dataventa['habitaciones']==habitaciones) & (dataventa['banos']==banos)  & (dataventa['garajes']==garajes)]
-            dataventaresult = dataventaresult.append(datapaso)
+            dataventaresult = pd.concat([dataventaresult,datapaso])
         dataventaresult['tiponegocio'] = 'venta'
-        resultado = resultado.append(dataventaresult)
+        resultado = pd.concat([resultado,dataventaresult])
 
     if dataarriendo.empty is False:
         dataarriendoresult = dataarriendo[dataarriendo['tipo']=='barrio']
         if habitaciones is not None and banos is not None:
             datapaso           = dataarriendo[(dataarriendo['tipo']=='complemento') & (dataarriendo['habitaciones']==habitaciones) & (dataarriendo['banos']==banos)]
-            dataarriendoresult = dataarriendoresult.append(datapaso)
+            dataarriendoresult = pd.concat([dataarriendoresult,datapaso])
         if habitaciones is not None and banos is not None and garajes is not None:
             datapaso           = dataarriendo[(dataarriendo['tipo']=='complemento_garaje') & (dataarriendo['habitaciones']==habitaciones) & (dataarriendo['banos']==banos)  & (dataarriendo['garajes']==garajes)]
-            dataarriendoresult = dataarriendoresult.append(datapaso)
+            dataarriendoresult = pd.concat([dataarriendoresult,datapaso])
         dataarriendoresult['tiponegocio'] = 'arriendo'
-        resultado = resultado.append(dataarriendoresult)
-    
+        resultado = pd.concat([resultado,dataarriendoresult])
+        
     if resultado.empty is False:
         variables = [x for x in ['valorizacion','tipo','habitaciones','banos','garajes','tiponegocio'] if x in resultado]
         if variables!=[]: resultado = resultado[variables]
@@ -254,10 +239,10 @@ def getcaracterizacion(pais,tipoinmueble,codigo):
     resultado = pd.DataFrame()
     if dataventa.empty is False:
         dataventa['tiponegocio'] = 'Venta'
-        resultado = resultado.append(dataventa)
+        resultado = pd.concat([resultado,dataventa])
     if dataarriendo.empty is False:
         dataarriendo['tiponegocio'] = 'Arriendo'
-        resultado = resultado.append(dataarriendo)
+        resultado = pd.concat([resultado,dataarriendo])
         
     if resultado.empty is False:
         resultado = resultado.to_dict(orient='records')
