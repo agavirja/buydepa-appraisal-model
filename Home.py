@@ -148,7 +148,6 @@ with st.sidebar:
             garajes        = st.session_state.inputvar['garajes']
             lat            = st.session_state.inputvar['latitud']
             lng            = st.session_state.inputvar['longitud']
-            st.write(st.session_state.inputvar)
             st.session_state.inputvar['barrio']          = getinfobarrio(pais,tipoinmueble,codigo,areaconstruida,habitaciones,banos,garajes)
             st.session_state.inputvar['valorizacion']    = getvalorizacion(pais,tipoinmueble,codigo,habitaciones,banos,garajes)
             st.session_state.inputvar['caracterizacion'] = getcaracterizacion(pais,tipoinmueble,codigo)
